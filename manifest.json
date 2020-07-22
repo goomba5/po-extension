@@ -1,0 +1,42 @@
+{
+  "name": "Partner Operations Toolkit (POT)",
+  "version": "1.0",
+  "description": "POT will add two asterisks for you to all locked document titles in a Docspot folder.",
+  "manifest_version": 2,
+  "page_action": {
+    "default_popup": "popup.html",
+    "default_title": "Partner Operations Toolkit (POT)",
+    "default_icon": {
+      "16": "images/get_started16.png",
+      "32": "images/get_started32.png",
+      "48": "images/get_started48.png",
+      "128": "images/get_started128.png"
+    }
+  },
+  "permissions": ["declarativeContent", "storage"],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://dotloop.com/*"],
+      "js": ["contentscript.js"]
+    }
+  ],
+  "commands": {
+    "scan-documents": {
+      "suggested_key": {
+        "default": "Alt+Shift+D",
+        "mac": "MacCtrl+Shift+D"
+      },
+      "description": "Scan documents"
+    }
+  },
+  "icons": {
+    "16": "images/get_started16.png",
+    "32": "images/get_started32.png",
+    "48": "images/get_started48.png",
+    "128": "images/get_started128.png"
+  }
+}
