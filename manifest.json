@@ -13,7 +13,7 @@
       "128": "images/get_started128.png"
     }
   },
-  "permissions": ["declarativeContent", "storage"],
+  "permissions": ["declarativeContent", "https://www.dotloop.com/*"],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
