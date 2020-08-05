@@ -13,15 +13,20 @@
       "128": "images/get_started128.png"
     }
   },
-  "permissions": ["declarativeContent", "https://www.dotloop.com/*"],
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "declarativeContent",
+    "https://www.dotloop.com/my/templates/*"
+  ],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
   },
   "content_scripts": [
     {
-      "matches": ["https://dotloop.com/*"],
-      "js": ["contentscript.js"]
+      "matches": ["https://www.dotloop.com/my/templates/*"],
+      "js": ["contentScript.js"]
     }
   ],
   "commands": {
