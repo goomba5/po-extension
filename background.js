@@ -46,7 +46,6 @@ chrome.runtime.onInstalled.addListener(function () {
   // allows user to press hotkey to run extension command
   chrome.commands.onCommand.addListener(function (command) {
     console.log("Hotkey command: " + command);
-    console.log(folderId);
 
     getDocumentIds(folderId);
   });
@@ -56,18 +55,28 @@ chrome.runtime.onInstalled.addListener(function () {
 // ------------------------------//
 
 async function getDocumentIds(folderId) {
-  let response = await fetch(
-    `https://www.dotloop.com/my/rest/v1_0/folder/${folderId}/document?batchNumber=${1}&batchSize=20&_=1595536501587`
-  );
+  let ok = true;
+  let batchNumber = 1;
 
-  console.log(response.ok);
-  let ok = response.headers;
+  while (ok) {
+    let response = await fetch(
+      `https://www.dotloop.com/my/rest/v1_0/folder/${folderId}/document?batchNumber=${batchNumber}&batchSize=20&_=1595536501587`
+    );
 
-  let documents = await response.json();
+    let documents = await response.json();
 
-  let documentIds = documents.map((d) => d.documentId).filter((d) => d);
+    if (documents.length == 0) {
+      let documentIds = documents.map((d) => d.documentId).filter((d) => d);
 
-  checkIfDocumentIsLocked(documentIds);
+      checkIfDocumentIsLocked(documentIds);
+      batchNumber++;
+    } else {
+      ok = false;
+      alert(
+        "POT is now complete! Refresh the page to see which documents are locked."
+      );
+    }
+  }
 }
 
 async function checkIfDocumentIsLocked(ids) {
@@ -86,9 +95,6 @@ async function checkIfDocumentIsLocked(ids) {
 
     console.log(`Document ID ${id} is not locked.`);
   });
-  alert(
-    "POT is now complete! Refresh the page to view which documents are locked."
-  );
 }
 
 async function updateDocumentName(name, selectedFolderId, documentId) {
