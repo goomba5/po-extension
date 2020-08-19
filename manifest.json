@@ -25,8 +25,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.dotloop.com/my/templates/*"],
-      "js": ["contentScript.js"]
+      "matches": ["https://www.dotloop.com/*"],
+      "js": ["contentscript.js"]
     }
   ],
   "commands": {
