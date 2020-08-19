@@ -1,18 +1,21 @@
-const getFolderId = () => {
-  let base_url = "https://www.dotloop.com/my/templates#folder/";
-  let url = window.location.href;
-  // https://www.dotloop.com/my/templates#folder/23923629
-  let folderId = url.replace(base_url, "");
+// Content Script Functions //
+//-------------------------//
 
-  return folderId;
+const getToken = () => {
+  let cookie = window.document.cookie;
+
+  const xsrfRegex = /XSRF\-TOKEN=\S+;/;
+  const tokenRegex = /(?<=XSRF\-TOKEN=)\S+\w/;
+
+  let fullXsrfString = cookie.match(xsrfRegex)[0];
+
+  let token = fullXsrfString.match(tokenRegex)[0];
+
+  return token;
 };
 
-document.querySelectorAll("li.section-item").forEach((folder) => {
-  folder.addEventListener("click", getFolderId);
-});
+// Chrome Content Script Utilities //
+//--------------------------------//
+let userToken = getToken();
 
-let folderId = getFolderId();
-
-console.log("The folderId is " + folderId);
-
-chrome.runtime.sendMessage(folderId);
+chrome.runtime.sendMessage(userToken);
