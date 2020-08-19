@@ -1,35 +1,40 @@
 //** NOTES **//
 /*
-KEY INFO:
---------
 
 TO-DO LIST:
 ----------
-- create a loop that checks for additional batchNumbers
-- create a way to capture the xsrf-token from the user
 
 DONE
 ----
+$ create a way to capture the xsrf-token from the user
 $ create a function that accepts a documentId and prepends documentName with "**" when locked is TRUE
 $ add an alert which informs the user that POT has completed its task
 $ capture folderId when user clicks the folder
-
+$ create a loop that checks for additional batchNumbers
 */
-
-// Capture folderId //
-// --------------- //
-
-let folderId = "";
-
-chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
-  folderId = response;
-});
 
 // Chrome Extension Utilities //
 // --------------------------//
 
+// initialize token, activeTabUrl and folderId
+let token = "";
+let activeTabUrl = "";
+let folderId = "";
+
+// capture the user token from the content script
+chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
+  token = response;
+});
+
+// capture the URL for the active tab if and when it changes
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+  if (changeInfo.status == "loading") {
+    activeTabUrl = changeInfo.url;
+  }
+});
+
+// extension icon is active when the url matches hostEquals
 chrome.runtime.onInstalled.addListener(function () {
-  // extension icon is active when the url matches hostEquals
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function () {
     chrome.declarativeContent.onPageChanged.addRules([
       {
@@ -45,8 +50,10 @@ chrome.runtime.onInstalled.addListener(function () {
 
   // allows user to press hotkey to run extension command
   chrome.commands.onCommand.addListener(function (command) {
-    console.log("Hotkey command: " + command);
+    // get the folderId from the URL when the command is fired
+    folderId = getFolderId(activeTabUrl);
 
+    // one function to rule them all
     getDocumentIds(folderId);
   });
 });
@@ -54,18 +61,27 @@ chrome.runtime.onInstalled.addListener(function () {
 // Background Extension Functions //
 // ------------------------------//
 
-async function getDocumentIds(folderId) {
+const getFolderId = (folderUrl) => {
+  let base_url = "https://www.dotloop.com/my/templates#folder/";
+  let url = folderUrl;
+
+  let folderId = url.replace(base_url, "");
+
+  return folderId;
+};
+
+async function getDocumentIds(selectedFolderId) {
   let ok = true;
   let batchNumber = 1;
 
   while (ok) {
     let response = await fetch(
-      `https://www.dotloop.com/my/rest/v1_0/folder/${folderId}/document?batchNumber=${batchNumber}&batchSize=20&_=1595536501587`
+      `https://www.dotloop.com/my/rest/v1_0/folder/${selectedFolderId}/document?batchNumber=${batchNumber}&batchSize=20&_=1595536501587`
     );
 
     let documents = await response.json();
 
-    if (documents.length == 0) {
+    if (documents.length != 0) {
       let documentIds = documents.map((d) => d.documentId).filter((d) => d);
 
       checkIfDocumentIsLocked(documentIds);
@@ -89,15 +105,20 @@ async function checkIfDocumentIsLocked(ids) {
 
     if (document.locked) {
       let documentName = document.name;
+      updateDocumentName(documentName, folderId, id, token);
       console.log(`Document ID ${id} is locked. Add ** to ${documentName}`);
-      updateDocumentName(documentName, folderId, id);
     }
 
     console.log(`Document ID ${id} is not locked.`);
   });
 }
 
-async function updateDocumentName(name, selectedFolderId, documentId) {
+async function updateDocumentName(
+  name,
+  selectedFolderId,
+  documentId,
+  userToken
+) {
   await fetch(
     `https://www.dotloop.com/my/rest/v1_0/folder/${selectedFolderId}/document/${documentId}`,
     {
@@ -109,7 +130,7 @@ async function updateDocumentName(name, selectedFolderId, documentId) {
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "same-origin",
         "x-requested-with": "XMLHttpRequest",
-        "x-xsrf-token": "",
+        "x-xsrf-token": `${userToken}`,
       },
       referrer: `https://www.dotloop.com/my/file/${documentId}/`,
       referrerPolicy: "origin-when-cross-origin",
