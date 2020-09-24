@@ -38,10 +38,13 @@ chrome.runtime.onInstalled.addListener(function () {
   // allows user to press hotkey to run extension command
   chrome.commands.onCommand.addListener(function (command) {
     // get the folderId from the URL when the command is fired
-    folderId = getFolderId(activeTabUrl);
-    console.log(`Folder ID: ${folderId}`);
-    // one function to rule them all
-    getDocumentIds(folderId);
+    if (command === "scan-documents") {
+      folderId = getFolderId(activeTabUrl);
+      console.log(`Folder ID: ${folderId}`);
+
+      // one function to rule them all
+      getDocumentIds(folderId);
+    }
   });
 });
 
@@ -49,8 +52,8 @@ chrome.runtime.onInstalled.addListener(function () {
 // ------------------------------//
 
 const getFolderId = (folderUrl) => {
-  let base_url = "https://www.dotloop.com/my/templates#folder/";
   let url = folderUrl;
+  let base_url = "https://www.dotloop.com/my/templates#folder/";
 
   let folderId = url.replace(base_url, "");
 
