@@ -1,18 +1,3 @@
-//** NOTES **//
-/*
-
-TO-DO LIST:
-----------
-
-DONE
-----
-$ create a way to capture the xsrf-token from the user
-$ create a function that accepts a documentId and prepends documentName with "**" when locked is TRUE
-$ add an alert which informs the user that POT has completed its task
-$ capture folderId when user clicks the folder
-$ create a loop that checks for additional batchNumbers
-*/
-
 // Chrome Extension Utilities //
 // --------------------------//
 
@@ -23,12 +8,14 @@ let folderId = "";
 
 // capture the user token from the content script
 chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
+  console.log(`Token response: ${response}`);
   token = response;
 });
 
 // capture the URL for the active tab if and when it changes
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
   if (changeInfo.status == "loading") {
+    console.log(`Active tab URL: ${changeInfo.url}`);
     activeTabUrl = changeInfo.url;
   }
 });
@@ -52,7 +39,7 @@ chrome.runtime.onInstalled.addListener(function () {
   chrome.commands.onCommand.addListener(function (command) {
     // get the folderId from the URL when the command is fired
     folderId = getFolderId(activeTabUrl);
-
+    console.log(`Folder ID: ${folderId}`);
     // one function to rule them all
     getDocumentIds(folderId);
   });

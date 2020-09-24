@@ -1,7 +1,7 @@
 {
   "name": "Partner Operations Toolkit (POT)",
   "version": "1.0",
-  "description": "POT will add two asterisks for you to all locked document titles in a Docspot folder.",
+  "description": "POT will add two asterisks to all locked document titles in a selected folder.",
   "manifest_version": 2,
   "page_action": {
     "default_popup": "popup.html",
