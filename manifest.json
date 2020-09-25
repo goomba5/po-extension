@@ -32,8 +32,8 @@
   "commands": {
     "scan-documents": {
       "suggested_key": {
-        "default": "Alt+Shift+D",
-        "mac": "MacCtrl+Shift+D"
+        "default": "Alt+Shift+S",
+        "mac": "MacCtrl+Shift+S"
       },
       "description": "Scan documents"
     }
