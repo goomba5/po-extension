@@ -5,6 +5,7 @@
 let token = "";
 let activeTabUrl = "";
 let folderId = "";
+let documentIds = [];
 
 // capture the user token from the content script
 chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
@@ -15,8 +16,13 @@ chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
 // capture the URL for the active tab if and when it changes
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
   if (changeInfo.status == "loading") {
-    console.log(`Active tab URL: ${changeInfo.url}`);
     activeTabUrl = changeInfo.url;
+    console.log(`Active tab URL: ${changeInfo.url}`);
+
+    folderId = getFolderId(activeTabUrl);
+    console.log(`Folder ID: ${folderId}`);
+
+    documentIds = getDocumentIds(folderId);
   }
 });
 
@@ -39,11 +45,8 @@ chrome.runtime.onInstalled.addListener(function () {
   chrome.commands.onCommand.addListener(function (command) {
     // get the folderId from the URL when the command is fired
     if (command === "scan-documents") {
-      folderId = getFolderId(activeTabUrl);
-      console.log(`Folder ID: ${folderId}`);
-
       // one function to rule them all
-      getDocumentIds(folderId);
+      
     }
   });
 });
@@ -98,8 +101,9 @@ async function checkIfDocumentIsLocked(ids) {
       updateDocumentName(documentName, folderId, id, token);
       console.log(`Document ID ${id} is locked. Add ** to ${documentName}`);
     }
-
-    console.log(`Document ID ${id} is not locked.`);
+    else {
+      console.log(`Document ID ${id} is not locked.`);
+    }
   });
 }
 
