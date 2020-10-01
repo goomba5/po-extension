@@ -22,7 +22,12 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     folderId = getFolderId(activeTabUrl);
     console.log(`Folder ID: ${folderId}`);
 
-    documentIds = getDocumentIds(folderId);
+    let documentIds = getAllDocumentIds(folderId).then(data => {
+      console.log(`Document IDs onUpdated: ${data}`);
+      return data;
+    });
+    
+    // console.log(`Document IDs onUpdated: ${documentIds}`);
   }
 });
 
@@ -63,9 +68,10 @@ const getFolderId = (folderUrl) => {
   return folderId;
 };
 
-async function getDocumentIds(selectedFolderId) {
+async function getAllDocumentIds(selectedFolderId) {
   let ok = true;
   let batchNumber = 1;
+  let allDocumentIds = [];
 
   while (ok) {
     let response = await fetch(
@@ -73,19 +79,17 @@ async function getDocumentIds(selectedFolderId) {
     );
 
     let documents = await response.json();
+    let parsedIds = documents.map((d) => d.documentId).filter((d) => d);
 
     if (documents.length != 0) {
-      let documentIds = documents.map((d) => d.documentId).filter((d) => d);
+      allDocumentIds.push(parsedIds);
 
-      checkIfDocumentIsLocked(documentIds);
       batchNumber++;
-    } else {
+    } else if(documents.length === 0) {
       ok = false;
-      alert(
-        "POT is now complete! Refresh the page to see which documents are locked."
-      );
     }
   }
+  return allDocumentIds;
 }
 
 async function checkIfDocumentIsLocked(ids) {
