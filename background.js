@@ -5,7 +5,9 @@
 let token = "";
 let activeTabUrl = "";
 let folderId = "";
-let documentIds = [];
+let allDocumentIds = [];
+let unlockedDocuments = 0;
+let totalDocuments = 0;
 
 // capture the user token from the content script
 chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
@@ -22,12 +24,11 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     folderId = getFolderId(activeTabUrl);
     console.log(`Folder ID: ${folderId}`);
 
-    let documentIds = getAllDocumentIds(folderId).then(data => {
+    getAllDocumentIds(folderId).then(data => {
+      let total = data.flat().length;
       console.log(`Document IDs onUpdated: ${data}`);
-      return data;
+      console.log(`Total documents onUpdated: ${total}`)
     });
-    
-    // console.log(`Document IDs onUpdated: ${documentIds}`);
   }
 });
 
@@ -38,7 +39,7 @@ chrome.runtime.onInstalled.addListener(function () {
       {
         conditions: [
           new chrome.declarativeContent.PageStateMatcher({
-            pageUrl: { hostEquals: "www.dotloop.com" },
+            pageUrl: { hostEquals: "https://www.dotloop.com" },
           }),
         ],
         actions: [new chrome.declarativeContent.ShowPageAction()],
@@ -51,7 +52,7 @@ chrome.runtime.onInstalled.addListener(function () {
     // get the folderId from the URL when the command is fired
     if (command === "scan-documents") {
       // one function to rule them all
-      
+
     }
   });
 });
@@ -71,7 +72,7 @@ const getFolderId = (folderUrl) => {
 async function getAllDocumentIds(selectedFolderId) {
   let ok = true;
   let batchNumber = 1;
-  let allDocumentIds = [];
+  let allDocIds = [];
 
   while (ok) {
     let response = await fetch(
@@ -82,14 +83,15 @@ async function getAllDocumentIds(selectedFolderId) {
     let parsedIds = documents.map((d) => d.documentId).filter((d) => d);
 
     if (documents.length != 0) {
-      allDocumentIds.push(parsedIds);
+      totalDocuments += parsedIds.length;
+      allDocIds.push(parsedIds);
 
       batchNumber++;
     } else if(documents.length === 0) {
       ok = false;
     }
   }
-  return allDocumentIds;
+  return allDocIds;
 }
 
 async function checkIfDocumentIsLocked(ids) {
