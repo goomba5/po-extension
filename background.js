@@ -5,7 +5,7 @@ let token = "";
 let activeTabUrl = "";
 let folderId = "";
 let allDocumentIds = [];
-let unlockedDocuments = 0;
+let totalUnlockedDocuments = 0;
 let totalLockedDocuments = 0;
 let totalDocuments = 0;
 
@@ -31,18 +31,18 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
       let total = data.flat().length;
       let docIds = data.flat();
       allDocumentIds = docIds;
+      totalDocuments = total;
       
-      console.log(`Document IDs onUpdated: ${data}`);
-      console.log(`Total documents onUpdated: ${total}`);
+      console.log(`Document IDs: ${data}`);
       return allDocumentIds;
     }).then(docIds => {
       checkIfDocumentIsLocked(docIds).then(documents => {
-        // console.log(documents);
         totalLockedDocuments = documents.length;
-        console.log(`Total locked documents: ${totalLockedDocuments}`);
+        let unlockedDocuments = totalDocuments - totalLockedDocuments;
+        totalUnlockedDocuments = unlockedDocuments;
+        displayDocumentTotals(totalDocuments, totalLockedDocuments, totalUnlockedDocuments);
       });
     });
-
   }
 });
 
@@ -156,4 +156,10 @@ async function updateDocumentName(
       credentials: "include",
     }
   );
+}
+
+const displayDocumentTotals = (total, locked, unlocked) => {
+  console.log(`Total documents: ${total}
+  Total locked documents: ${locked}
+  Total unlocked documents: ${unlocked}`);
 }
