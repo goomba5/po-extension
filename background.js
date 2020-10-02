@@ -1,13 +1,16 @@
-// Chrome Extension Utilities //
-// --------------------------//
+// Global Variables //
+//-----------------//
 
-// initialize token, activeTabUrl and folderId
 let token = "";
 let activeTabUrl = "";
 let folderId = "";
 let allDocumentIds = [];
 let unlockedDocuments = 0;
+let totalLockedDocuments = 0;
 let totalDocuments = 0;
+
+// Chrome Extension Utilities //
+//---------------------------//
 
 // capture the user token from the content script
 chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
@@ -26,9 +29,20 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 
     getAllDocumentIds(folderId).then(data => {
       let total = data.flat().length;
+      let docIds = data.flat();
+      allDocumentIds = docIds;
+      
       console.log(`Document IDs onUpdated: ${data}`);
-      console.log(`Total documents onUpdated: ${total}`)
+      console.log(`Total documents onUpdated: ${total}`);
+      return allDocumentIds;
+    }).then(docIds => {
+      checkIfDocumentIsLocked(docIds).then(documents => {
+        // console.log(documents);
+        totalLockedDocuments = documents.length;
+        console.log(`Total locked documents: ${totalLockedDocuments}`);
+      });
     });
+
   }
 });
 
@@ -52,13 +66,13 @@ chrome.runtime.onInstalled.addListener(function () {
     // get the folderId from the URL when the command is fired
     if (command === "scan-documents") {
       // one function to rule them all
-
+      checkIfDocumentIsLocked(allDocumentIds);
     }
   });
 });
 
 // Background Extension Functions //
-// ------------------------------//
+//-------------------------------//
 
 const getFolderId = (folderUrl) => {
   let url = folderUrl;
@@ -95,22 +109,24 @@ async function getAllDocumentIds(selectedFolderId) {
 }
 
 async function checkIfDocumentIsLocked(ids) {
-  ids.map(async (id) => {
+  let lockedDocumentList = [];
+  let requestedDocuments = ids.map(async (id) => {
     let response = await fetch(
       `https://www.dotloop.com/my/rest/v1_0/document/${id}/revision/0?_=1595539388679`
     );
 
-    let document = await response.json();
+    let data = await response.json();
+    return data;
+  })
 
-    if (document.locked) {
-      let documentName = document.name;
-      updateDocumentName(documentName, folderId, id, token);
-      console.log(`Document ID ${id} is locked. Add ** to ${documentName}`);
+  let documents = await Promise.all(requestedDocuments);
+
+  for(let document of documents){
+    if(document.locked == true){
+      lockedDocumentList.push(document.documentId);
     }
-    else {
-      console.log(`Document ID ${id} is not locked.`);
-    }
-  });
+  }
+  return lockedDocumentList;
 }
 
 async function updateDocumentName(
