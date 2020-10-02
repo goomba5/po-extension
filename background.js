@@ -33,7 +33,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
       allDocumentIds = docIds;
       totalDocuments = total;
       
-      console.log(`Document IDs: ${data}`);
       return allDocumentIds;
     }).then(docIds => {
       checkIfDocumentIsLocked(docIds).then(documents => {
@@ -66,7 +65,11 @@ chrome.runtime.onInstalled.addListener(function () {
     // get the folderId from the URL when the command is fired
     if (command === "scan-documents") {
       // one function to rule them all
-      checkIfDocumentIsLocked(allDocumentIds);
+      checkIfDocumentIsLocked(allDocumentIds).then((docs) => {
+        updateDocumentName(docs);
+      }).then(() => {
+        alert("POT is now complete! Refresh the page to view updated document titles.");
+      });
     }
   });
 });
