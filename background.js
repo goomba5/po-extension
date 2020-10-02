@@ -62,14 +62,19 @@ chrome.runtime.onInstalled.addListener(function () {
 
   // allows user to press hotkey to run extension command
   chrome.commands.onCommand.addListener(function (command) {
-    // get the folderId from the URL when the command is fired
     if (command === "scan-documents") {
       // one function to rule them all
       checkIfDocumentIsLocked(allDocumentIds).then((docs) => {
-        updateDocumentName(docs);
+        docs.forEach(document => {
+          let documentName = document.name;
+          let docFolderId = document.folderId;
+          let documentId = document.documentId;
+
+          updateDocumentName(documentName, docFolderId, documentId, token);
+        })
       }).then(() => {
-        alert("POT is now complete! Refresh the page to view updated document titles.");
-      });
+        alertDocumentTotals(totalDocuments, totalLockedDocuments, totalUnlockedDocuments);
+      })
     }
   });
 });
@@ -126,7 +131,7 @@ async function checkIfDocumentIsLocked(ids) {
 
   for(let document of documents){
     if(document.locked == true){
-      lockedDocumentList.push(document.documentId);
+      lockedDocumentList.push(document);
     }
   }
   return lockedDocumentList;
@@ -165,4 +170,10 @@ const displayDocumentTotals = (total, locked, unlocked) => {
   console.log(`Total documents: ${total}
   Total locked documents: ${locked}
   Total unlocked documents: ${unlocked}`);
+}
+
+const alertDocumentTotals = (total, locked, unlocked) => {
+  alert(`Total documents: ${total}
+  Total unlocked documents: ${unlocked}
+  Total locked documents: ${locked}`);
 }
