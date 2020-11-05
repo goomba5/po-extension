@@ -1,6 +1,6 @@
 {
   "name": "Partner Operations Toolkit (POT)",
-  "version": "1.0",
+  "version": "1.1",
   "description": "POT will add two asterisks to all locked document titles in a selected folder.",
   "manifest_version": 2,
   "page_action": {
