@@ -91,27 +91,24 @@ const getFolderId = (folderUrl) => {
   return folderId;
 };
 
+/*
+https://www.dotloop.com/my/rest/v1_0/folder/110788604/document?batchNumber=2&batchSize=20&_=1604609453105
+*/
+
 async function getAllDocumentIds(selectedFolderId) {
-  let ok = true;
   let batchNumber = 1;
   let allDocIds = [];
 
-  while (ok) {
-    let response = await fetch(
-      `https://www.dotloop.com/my/rest/v1_0/folder/${selectedFolderId}/document?batchNumber=${batchNumber}&batchSize=20&_=1595536501587`
-    );
+  let response = await fetch(
+    `https://www.dotloop.com/my/rest/v1_0/folder/${selectedFolderId}/document?batchNumber=${batchNumber}&batchSize=20&_=1595536501587`
+  );
 
-    let documents = await response.json();
-    let parsedIds = documents.map((d) => d.documentId).filter((d) => d);
+  let documents = await response.json();
+  let parsedIds = documents.map((d) => d.documentId).filter((d) => d);
 
-    if (documents.length != 0) {
-      totalDocuments += parsedIds.length;
-      allDocIds.push(parsedIds);
-
-      batchNumber++;
-    } else if(documents.length === 0) {
-      ok = false;
-    }
+  if (documents.length != 0) {
+    totalDocuments += parsedIds.length;
+    allDocIds.push(parsedIds);
   }
   return allDocIds;
 }
